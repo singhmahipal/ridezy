@@ -1,6 +1,21 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 
 const UserLogin = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [userData, setUserData] = useState({});
+
+  const submitHandler = (e) => {
+    e.preventDefault();
+    setUserData({
+      email: email,
+      password: password,
+    });
+    setEmail("");
+    setPassword("");
+  };
+
   return (
     <div className="flex flex-col justify-between h-screen p-7">
       <div className="">
@@ -9,25 +24,32 @@ const UserLogin = () => {
           alt="ridezy logo"
           className="w-16 mb-10"
         />
-        <form>
+        <form onSubmit={(e) => submitHandler(e)}>
           <h3 className="text-lg font-medium mb-2">what's your email</h3>
           <input
             type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             placeholder="email@example.com"
             className="bg-[#eee] rounded-lg px-4 py-2 text-lg border w-full mb-7 placeholder:text-base"
             required
           />
+
           <h3 className="font-medium text-lg mb-2">Enter password</h3>
           <input
             type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
             className="bg-[#eee] border rounded-lg w-full px-4 py-2 mb-7 placeholder:text-base text-lg"
             placeholder="password"
             required
           />
+
           <button className="bg-black text-white w-full py-2 px-4 font-semibold text-lg rounded-lg mb-3">
             Login
           </button>
         </form>
+
         <p className="text-center">
           New here?{" "}
           <Link className="text-blue-600" to="/signup">
@@ -35,6 +57,7 @@ const UserLogin = () => {
           </Link>
         </p>
       </div>
+
       <div>
         <Link
           className="bg-[#10b461] text-white px-4 py-2 w-full flex items-center justify-center rounded-lg font-semibold text-lg mb-5"

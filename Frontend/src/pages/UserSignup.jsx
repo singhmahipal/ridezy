@@ -1,7 +1,28 @@
-import React from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 
 const UserSignup = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [userData, setUserData] = useState({});
+
+  const submitHandler = (e) => {
+    e.preventDefault();
+    setUserData({
+      firstName: firstName,
+      lastName: lastName,
+      email: email,
+      password: password,
+    });
+
+    setEmail("");
+    setPassword("");
+    setFirstName("");
+    setLastName("");
+  };
+
   return (
     <div>
       <div className="p-7 h-screen flex flex-col justify-between">
@@ -11,17 +32,25 @@ const UserSignup = () => {
             alt="ridezy logo"
             className="w-20 mb-10"
           />
-          <form action="">
+          <form
+            onSubmit={(e) => {
+              submitHandler(e);
+            }}
+          >
             <h3 className="font-medium text-lg w-1/2 mb-2">what's your name</h3>
             <div className="flex gap-4 mb-7">
               <input
                 type="text"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
                 className="bg-[#eee] border rounded-lg placeholder:text-base text-lg px-4 py-2 w-1/2"
                 placeholder="first name"
                 required
               />
               <input
                 type="text"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
                 className="bg-[#eee] rounded-lg border px-4 py-2 text-lg placeholder:text-base w-1/2"
                 placeholder="last name"
               />
@@ -30,6 +59,10 @@ const UserSignup = () => {
             <h3 className="font-medium text-lg mb-2">what's your email</h3>
             <input
               type="email"
+              value={email}
+              onChange={(e) => {
+                setEmail(e.target.value);
+              }}
               className="bg-[#eee] border rounded-lg w-full px-4 py-2 mb-7 text-lg placeholder:text-base"
               placeholder="email@example.com"
               required
@@ -37,6 +70,8 @@ const UserSignup = () => {
 
             <h3 className="text-lg font-medium mb-2">Enter password</h3>
             <input
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               type="password"
               className="bg-[#eee] border rounded-lg px-4 py-2 text-lg w-full placeholder:text-base mb-7"
               placeholder="password"

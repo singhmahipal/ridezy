@@ -1,6 +1,20 @@
-import React from "react";
+import {useState} from "react";
 import { Link } from "react-router-dom";
 const CaptainLogin = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [userData, setUserData] = useState({});
+
+  const submitHandler = (e) => {
+    e.preventDefault();
+    setUserData({
+      email: email,
+      password: password,
+    });
+    setEmail("");
+    setPassword("");
+  };
+
   return (
     <div className="p-7 flex flex-col justify-between h-screen">
       <div>
@@ -9,10 +23,16 @@ const CaptainLogin = () => {
           alt="ridezy logo"
           className="w-20 mb-3"
         />
-        <form action="">
+        <form
+          onSubmit={(e) => {
+            submitHandler(e);
+          }}
+        >
           <h3 className="text-lg font-medium mb-2">what's your email</h3>
           <input
             type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             className="bg-[#eee] w-full border rounded-lg px-4 py-2 text-lg placeholder:text-base mb-2"
             placeholder="email@example.com"
             required
@@ -20,7 +40,9 @@ const CaptainLogin = () => {
 
           <h3 className="text-lg font-medium mb-2">enter password</h3>
           <input
-            type="text"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
             className="bg-[#eee] border w-full rounded-lg px-4 py-2 text-lg placeholder:text-base mb-5"
             placeholder="password"
             required
