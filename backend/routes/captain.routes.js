@@ -48,6 +48,6 @@ router.post(
 
 router.get("/profile", authCaptain, getCaptainProfile);
 
-router.get("/logout", authCaptain, logoutCaptain);
+router.get("/logout", logoutCaptain);
 
 module.exports = router;
