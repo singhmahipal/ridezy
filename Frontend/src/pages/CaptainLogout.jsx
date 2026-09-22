@@ -7,6 +7,10 @@ const CaptainLogout = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    if (!token) {
+      navigate("/captain-login");
+      return;
+    }
     axios
       .get(`${import.meta.env.VITE_BASE_URL}/captains/logout`, {
         headers: {

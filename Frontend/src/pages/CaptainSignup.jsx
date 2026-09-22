@@ -6,7 +6,7 @@ import axios from "axios";
 
 const CaptainSignup = () => {
   const [firstName, setFirstName] = useState("");
-  const [lastName, setlastName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [userData, setUserData] = useState({});
@@ -38,15 +38,17 @@ const CaptainSignup = () => {
 
     try {
       const response = await axios.post(
-        "http://localhost:3000/captains/register",
+        `${import.meta.env.VITE_BASE_URL}captains/register`,
         CaptainData,
       );
+
       if (response.status == 200) {
         const data = response.data;
         setCaptain(data.captain);
         localStorage.setItem("token", data.token);
         navigate("/captain-home");
       }
+
       console.log("Success:", response.data);
     } catch (error) {
       console.log("Status:", error.response?.status);
@@ -59,7 +61,7 @@ const CaptainSignup = () => {
     }
 
     setFirstName("");
-    setlastName("");
+    setLastName("");
     setEmail("");
     setPassword("");
     setVehicleColor("");
@@ -93,7 +95,7 @@ const CaptainSignup = () => {
               <input
                 type="text"
                 value={lastName}
-                onChange={(e) => setlastName(e.target.value)}
+                onChange={(e) => setLastName(e.target.value)}
                 className="bg-[#eee] w-1/2 border rounded-lg text-lg px-4 py-2 font-medium placeholder:text-base"
                 placeholder="last name"
               />
@@ -120,6 +122,7 @@ const CaptainSignup = () => {
               onChange={(e) => setPassword(e.target.value)}
               className="bg-[#eee] rounded-lg border w-full px-4 py-2 text-lg font-medium mb-5 placeholder:text-base"
               placeholder="password"
+              required
             />
 
             <h3 className="font-medium text-lg mb-2">Vehicle Information</h3>
@@ -132,6 +135,7 @@ const CaptainSignup = () => {
                   className="bg-[#eee] border rounded-lg w-1/2 text-lg
                 font-medium px-4 py-2 placeholder:text-base"
                   placeholder="vehicle color"
+                  required
                 />
 
                 <input
@@ -141,6 +145,7 @@ const CaptainSignup = () => {
                   className="bg-[#eee] border
                 font-medium rounded-lg w-1/2 px-4 py-2 text-lg placeholder:text-base"
                   placeholder="vehicle plate"
+                  required
                 />
               </div>
 
@@ -152,6 +157,7 @@ const CaptainSignup = () => {
                   placeholder="capacity"
                   className="bg-[#eee] px-4 py-2
                  border w-1/2 rounded-lg text-lg font-medium placeholder:text-base "
+                  required
                 />
                 <select
                   value={vehicleType}
