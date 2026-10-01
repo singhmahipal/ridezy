@@ -1,4 +1,3 @@
-
 const mapService = require("../services/maps.service.js");
 const { validationResult } = require("express-validator");
 
@@ -11,9 +10,14 @@ module.exports.getCoordinates = async (req, res, next) => {
   const { address } = req.query;
 
   try {
-    const coordinates = mapService.getAddressCoordinates(address);
+    const coordinates = await mapService.getAddressCoordinates(address);
     res.status(200).json(coordinates);
   } catch (error) {
-    res.status(404).json({ message: "co-ordinates not found" });
+    console.error(error);
+
+    return res.status(404).json({
+      message: "co-ordinates not found",
+      error: error.message,
+    });
   }
 };

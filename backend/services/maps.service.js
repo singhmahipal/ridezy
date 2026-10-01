@@ -1,22 +1,33 @@
-const axios= require("axios");
+const axios = require("axios");
 
-module.exports.getAddressCoordinate = async (address) => {
-  const apikey = process.env.GOOGLE_MAPS_API;
-  const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURI(address)}&key=${apikey}`;
-
+module.exports.getAddressCoordinates = async (address) => {
   try {
-    const response = await axios.get(url);
-    if (response.data.status == "OK") {
-      const location = response.data.results[0].geometry.location;
-      return {
-        ltd: location.ltd,
-        lng: location.lng,
-      };
-    } else {
-      throw new Error("unable to fetch coordinates");
+    const response = await axios.get(
+      "https://nominatim.openstreetmap.org/search",
+      {
+        params: {
+          q: address,
+          format: "json",
+          limit: 1,
+        },
+        headers: {
+          "User-Agent": "Ridezy/1.0",
+        },
+      }
+    );
+
+    if (response.data.length === 0) {
+      throw new Error("Address not found");
     }
+
+    const location = response.data[0];
+
+    return {
+      lat: parseFloat(location.lat),
+      lng: parseFloat(location.lon),
+    };
   } catch (error) {
-    console.error(error);
+    console.error("Nominatim error:", error.message);
     throw error;
   }
 };
