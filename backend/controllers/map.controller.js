@@ -47,3 +47,25 @@ module.exports.getDistanceTime = async (req, res, next) => {
     res.status(500).json({ message: "internal server error" });
   }
 };
+
+module.exports.getAutoSuggestions = async (req, res, next) => {
+  try {
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { input } = req.query;
+
+    const getAutoSuggestions =
+      await mapService.getAutoCompleteSuggestions(input);
+
+    res.status(200).json(getAutoSuggestions);
+  } catch (error) {
+    console.error(error);
+    return res
+      .status(500)
+      .json({ message: "Unable to fetch autocomplete suggestions" });
+  }
+};

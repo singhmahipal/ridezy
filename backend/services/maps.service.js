@@ -57,3 +57,29 @@ module.exports.getDistanceTime = async (origin, destination) => {
     throw error;
   }
 };
+
+module.exports.getAutoCompleteSuggestions = async (input) => {
+  if (!input) {
+    throw new Error("query is required");
+  }
+  try {
+    const response = await axios.get(
+      "https://nominatim.openstreetmap.org/search",
+      {
+        params: {
+          q: input,
+          format: "json",
+          limit: 5,
+          addressdetails: 1,
+        },
+        headers: {
+          "User-Agent": "Ridezy/1.0",
+        },
+      },
+    );
+    return response.data.map((place) => place.display_name).filter(Boolean);
+  } catch (error) {
+    console.error("Nominatim autocomplete error:", error.message);
+    throw error;
+  }
+};

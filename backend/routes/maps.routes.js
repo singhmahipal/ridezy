@@ -5,6 +5,7 @@ const { authUser } = require("../middlewares/auth.middleware");
 const {
   getCoordinates,
   getDistanceTime,
+  getAutoSuggestions,
 } = require("../controllers/map.controller");
 
 router.get(
@@ -20,6 +21,13 @@ router.get(
   query("destination").isString().isLength({ min: 3 }),
   authUser,
   getDistanceTime,
+);
+
+router.get(
+  "/get-auto-complete",
+  query("input").isString().isLength({ min: 3 }),
+  authUser,
+  getAutoSuggestions,
 );
 
 module.exports = router;
