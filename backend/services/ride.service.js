@@ -1,71 +1,74 @@
-const { Error } = require("mongoose");
-const mapServices = require("./maps.service");
-const crypto = require("crypto");
-const rideModel = require("../models/ride.model");
+const { validationResult } = require("express-validator");
+const RideService = require("../services/ride.service");
+const {
+  getAddressCoordinates,
+  getDistanceTime,
+} = require("../services/maps.service");
 
-async function getFare(vehicleType,distance, duration) {
+module.exports.createRide = async (req, res) => {
+  const errors = validationResult(req);
 
-  const baseFare = {
-    auto: 30,
-    car: 50,
-    motorcycle: 20,
-  };
-
-  const perKmRate = {
-    auto: 10,
-    car: 15,
-    motorcycle: 8,
-  };
-
-  const perMinuteRate = {
-    auto: 2,
-    car: 3,
-    motorcycle: 1.5,
-  };
-
-  return (
-    baseFare[vehicleType] +
-    (perKmRate[vehicleType] * distance) / 1000 +
-    (perMinuteRate[vehicleType] * duration) / 60
-  );
-}
-
-function generateOtp(num) {
-  return crypto.randomInt(Math.pow(10, num - 1), Math.pow(10, num)).toString();
-}
-
-module.exports.createRide = async ({
-  user,
-  pickup,
-  destination,
-  vehicleType,
-}) => {
-  if (!user || !pickup || !destination || !vehicleType) {
-    throw new Error("all fields are required");
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
   }
 
-  const pickupCoordinates = await mapServices.getAddressCoordinates(pickup);
+  const { pickup, destination, vehicleType } = req.body;
 
-  const destinationCoordinates =
-    await mapServices.getAddressCoordinates(destination);
+  try {
+    const ride = await RideService.createRide({
+      user: req.user._id,
+      pickup,
+      destination,
+      vehicleType,
+    });
 
-  const { distance, duration } = await mapServices.getDistanceTime(
-    pickupCoordinates,
-    destinationCoordinates,
-  );
+    return res.status(201).json(ride);
+  } catch (error) {
+    console.error("Create ride error:", error);
+    return res.status(500).json({ message: error.message });
+  }
+};
 
-  const fare = await getFare(vehicleType, distance, duration);
+module.exports.getFare = async (vehicleType, distance, duration) => {
+  try {
+    let baseFare = 0;
+    let perKmRate = 0;
+    let perMinuteRate = 0;
 
-  const ride = await rideModel.create({
-    user,
-    pickup,
-    destination,
-    vehicleType,
-    otp: generateOtp(6),
-    fare,
-    distance,
-    duration,
-  });
+    switch (vehicleType) {
+      case "auto":
+        baseFare = 30;
+        perKmRate = 10;
+        perMinuteRate = 2;
+        break;
 
-  return ride;
+      case "motorcycle":
+        baseFare = 20;
+        perKmRate = 8;
+        perMinuteRate = 1.5;
+        break;
+
+      case "car":
+        baseFare = 50;
+        perKmRate = 12;
+        perMinuteRate = 2.5;
+        break;
+
+      default:
+        throw new Error("Invalid vehicle type");
+    }
+
+    // OSRM distance is in meters
+    // OSRM duration is in seconds
+    const distanceInKm = distance / 1000;
+    const durationInMinutes = duration / 60;
+
+    const fare =
+      baseFare + distanceInKm * perKmRate + durationInMinutes * perMinuteRate;
+
+    return Math.round(fare);
+  } catch (error) {
+    console.error("Fare calculation error:", error);
+    throw error;
+  }
 };

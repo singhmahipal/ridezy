@@ -1,12 +1,17 @@
-import React from "react";
+import { vehicleImgUrl } from "./VehicleData";
 
-const VehiclePanel = (props) => {
+const VehiclePanel = ({
+  setVehiclePanelOpen,
+  setConfirmRidePanelOpen,
+  fare,
+  selectVehicle,
+}) => {
   return (
     <div>
       <div className="">
         <h5
           onClick={() => {
-            props.setVehiclePanelOpen(false);
+            setVehiclePanelOpen(false);
           }}
           className="p-1 text-center absolute w-[95%] top-[0%]"
         >
@@ -15,16 +20,13 @@ const VehiclePanel = (props) => {
         <h3 className="text-2xl font-semibold mb-5">choose a vehicle</h3>
         <div
           onClick={() => {
-            props.setConfirmRidePanelOpen(true);
-            props.setVehiclePanelOpen(false);
+            setConfirmRidePanelOpen(true);
+            setVehiclePanelOpen(false);
+            selectVehicle("car");
           }}
           className="flex justify-between items-center w-full border-gray-300 border-2 mb-2 p-3 active:border-black rounded-lg"
         >
-          <img
-            src="https://swyft.pl/wp-content/uploads/2023/05/how-many-people-can-a-uberx-take.jpg"
-            alt="car icon"
-            className=" h-10"
-          />
+          <img src={vehicleImgUrl.car} alt="car icon" className=" h-10" />
           <div className="">
             <h4 className="font-medium text-lg">
               Riderzy GO{" "}
@@ -37,18 +39,19 @@ const VehiclePanel = (props) => {
               affordable, compact rides
             </p>
           </div>
-          <h2 className="text-lg font-semibold">$ 190.12</h2>
+          <h2 className="text-lg font-semibold">$ {fare.car}</h2>
         </div>
 
         <div
           onClick={() => {
-            props.setConfirmRidePanelOpen(true);
-            props.setVehiclePanelOpen(false);
+            setConfirmRidePanelOpen(true);
+            setVehiclePanelOpen(false);
+            selectVehicle("motorcycle");
           }}
           className="flex justify-between items-center w-full p-3 border-gray-300 border-2 active:border-black mb-2 rounded-lg"
         >
           <img
-            src="https://d1a3f4spazzrp4.cloudfront.net/car-types/haloProductImages/Regular/MotorcycleOrange-249-0.png"
+            src={vehicleImgUrl.motorcycle}
             alt="motorcycle logo"
             className="h-22"
           />
@@ -64,21 +67,18 @@ const VehiclePanel = (props) => {
               affordable moto rides
             </p>
           </div>
-          <h2 className="font-semibold text-lg">$ 95.10</h2>
+          <h2 className="font-semibold text-lg">$ {fare.motorcycle}</h2>
         </div>
 
         <div
           onClick={() => {
-            props.setConfirmRidePanelOpen(true);
-            props.setVehiclePanelOpen(false);
+            setConfirmRidePanelOpen(true);
+            setVehiclePanelOpen(false);
+            selectVehicle("auto");
           }}
           className="flex justify-between items-center border-gray-300 border-2 p-3 active:border-black rounded-lg w-full"
         >
-          <img
-            src="https://imgs.search.brave.com/1mc8GXZUll__uxTgDXojp6LW9gMoJB4hnkGOrp_HLHo/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9wbmcu/cG5ndHJlZS5jb20v/cG5nLXZlY3Rvci8y/MDI1MDUwMi9vdXJt/aWQvcG5ndHJlZS1y/ZXRyby1hdXRvLXJp/Y2tzaGF3LXBuZy1p/bWFnZV8xNjE4MjMy/OS5wbmc"
-            alt="auto"
-            className="h-20"
-          />
+          <img src={vehicleImgUrl.auto} alt="auto" className="h-18" />
           <div className="">
             <h4 className="font-medium text-lg">
               Auto{" "}
@@ -91,7 +91,7 @@ const VehiclePanel = (props) => {
               affordables auto rides
             </p>
           </div>
-          <h2 className="font-semibold text-lg">$ 145.20</h2>
+          <h2 className="font-semibold text-lg">$ {fare.auto}</h2>
         </div>
       </div>
     </div>

@@ -73,7 +73,7 @@ module.exports.getAutoCompleteSuggestions = async (input) => {
           addressdetails: 1,
         },
         headers: {
-          "User-Agent": "Ridezy/1.0",
+          "User-Agent": "Ridezy/2.0",
         },
       },
     );
