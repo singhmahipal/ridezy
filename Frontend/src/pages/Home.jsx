@@ -7,6 +7,9 @@ import VehiclePanel from "../components/VehiclePanel";
 import ConfirmRide from "../components/ConfirmRide";
 import LookingForDriver from "../components/LookingForDriver";
 import WaitingForDriver from "../components/WaitingForDriver";
+import { useContext } from "react";
+import { UserDataContext } from "../context/UserContext";
+import { SocketContext } from "../context/SocketContext";
 
 const Home = () => {
   const [pickup, setPickup] = useState("");
@@ -35,6 +38,13 @@ const Home = () => {
   const waitingForDriverRef = useRef(null);
 
   const lookingForDriverRef = useRef(null);
+
+  const { user } = useContext(UserDataContext);
+  const { socket } = useContext(SocketContext);
+
+  useEffect(() => {
+    socket.emit("join", { userType: "user", userId: user._id });
+  }, [user]);
 
   const handlePickupChange = (e) => {
     setPickup(e.target.value);

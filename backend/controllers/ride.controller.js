@@ -4,6 +4,7 @@ const {
   getAddressCoordinates,
   getDistanceTime,
 } = require("../services/maps.service");
+const { sendMessageToSocketId } = require("../socket");
 
 module.exports.createRide = async (req, res) => {
   const errors = validationResult(req);
@@ -22,7 +23,24 @@ module.exports.createRide = async (req, res) => {
       vehicleType,
     });
 
-    return res.status(201).json(ride);
+    res.status(201).json(ride);
+
+    const pickupCoordinates = await RideService.getAddressCoordinates(pickup);
+
+    const captainInRadius = await RideService.getCaptainsInRadius(
+      pickupCoordinates.lat,
+      pickupCoordinates.lng,
+      2,
+    );
+
+    ride.otp = "";
+
+    captainInRadius.map((captain) => {
+      sendMessageToSocketId(captain.socketId, {
+        event: "new-ride",
+        data: ride,
+      });
+    });
   } catch (error) {
     console.error("Create ride error:", error);
     return res.status(500).json({ message: error.message });

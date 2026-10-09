@@ -4,6 +4,7 @@ const {
   getAddressCoordinates,
   getDistanceTime,
 } = require("../services/maps.service");
+const captainModel = require("../models/captain.model");
 
 module.exports.createRide = async (req, res) => {
   const errors = validationResult(req);
@@ -71,4 +72,16 @@ module.exports.getFare = async (vehicleType, distance, duration) => {
     console.error("Fare calculation error:", error);
     throw error;
   }
+};
+
+module.exports.getCaptainsInRadius = async (ltd, lng, radius) => {
+  const captains = await captainModel.find({
+    location: {
+      $geoWithin: {
+        $centerSphere: [[ltd, lng], radius / 6371],
+      },
+    },
+  });
+
+  return captains;
 };
