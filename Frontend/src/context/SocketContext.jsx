@@ -1,5 +1,5 @@
-const { useEffect,createContext } = require("react");
-const { io } = require("socket.io-client");
+import { useEffect, createContext } from "react";
+import { io } from "socket.io-client";
 
 export const SocketContext = createContext();
 
@@ -17,9 +17,9 @@ const SocketProvider = ({ children }) => {
   }, []);
 
   return (
-    <socketContext.Provider value={{ socket }}>
+    <SocketContext.Provider value={{ socket }}>
       {children}
-    </socketContext.Provider>
+    </SocketContext.Provider>
   );
 };
 

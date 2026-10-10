@@ -1,4 +1,5 @@
 const axios = require("axios");
+const captainModel = require("../models/captain.model");
 
 module.exports.getAddressCoordinates = async (address) => {
   try {
@@ -82,4 +83,16 @@ module.exports.getAutoCompleteSuggestions = async (input) => {
     console.error("Nominatim autocomplete error:", error.message);
     throw error;
   }
+};
+
+module.exports.getCaptainsInRadius = async (ltd, lng, radius) => {
+  const captains = await captainModel.find({
+    location: {
+      $geoWithin: {
+        $centerSphere: [[ltd, lng], radius / 6371],
+      },
+    },
+  });
+
+  return captains;
 };

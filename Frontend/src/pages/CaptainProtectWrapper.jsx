@@ -11,27 +11,49 @@ const CaptainProtectWrapper = ({ children }) => {
 
   useEffect(() => {
     if (!token) {
+      setIsLoading(false);
       navigate("/captain-login");
+      return;
     }
 
-    setIsLoading(true);
+    let cancelled = false;
 
-    axios
-      .get(`${import.meta.env.VITE_BASE_URL}/captains/profile`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((response) => {
-        if (response.status == 200) {
+    const fetchCaptain = async () => {
+      setIsLoading(true);
+
+      try {
+        const response = await axios.get(
+          `${import.meta.env.VITE_BASE_URL}/captains/profile`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+
+        if (!cancelled && response.status === 200) {
           setCaptain(response.data.captain);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          console.error("Failed to fetch captain:", err);
+          localStorage.removeItem("token");
+          setCaptain(null);
+          navigate("/captain-login");
+        }
+      } finally {
+        if (!cancelled) {
           setIsLoading(false);
         }
-      })
-      .catch((err) => {
-        console.log(err);
-        localStorage.removeItem("token");
-        navigate("/captain-login");
-      });
-  }, [token]);
+      }
+    };
+
+    fetchCaptain();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [token, navigate, setCaptain, setIsLoading]);
 
   if (isLoading) {
     return (

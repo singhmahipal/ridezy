@@ -1,87 +1,81 @@
-const { validationResult } = require("express-validator");
-const RideService = require("../services/ride.service");
-const {
-  getAddressCoordinates,
-  getDistanceTime,
-} = require("../services/maps.service");
+const crypto = require("crypto");
+const rideModel = require("../models/ride.model");
 const captainModel = require("../models/captain.model");
+const { getAddressCoordinates, getDistanceTime } = require("./maps.service");
 
-module.exports.createRide = async (req, res) => {
-  const errors = validationResult(req);
-
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
-  }
-
-  const { pickup, destination, vehicleType } = req.body;
-
-  try {
-    const ride = await RideService.createRide({
-      user: req.user._id,
-      pickup,
-      destination,
-      vehicleType,
-    });
-
-    return res.status(201).json(ride);
-  } catch (error) {
-    console.error("Create ride error:", error);
-    return res.status(500).json({ message: error.message });
-  }
-};
+function getOtp(digits) {
+  return crypto.randomInt(10 ** (digits - 1), 10 ** digits).toString();
+}
 
 module.exports.getFare = async (vehicleType, distance, duration) => {
-  try {
-    let baseFare = 0;
-    let perKmRate = 0;
-    let perMinuteRate = 0;
+  const rates = {
+    auto: { base: 30, perKm: 10, perMin: 2 },
+    motorcycle: { base: 20, perKm: 8, perMin: 1.5 },
+    car: { base: 50, perKm: 12, perMin: 2.5 },
+  };
 
-    switch (vehicleType) {
-      case "auto":
-        baseFare = 30;
-        perKmRate = 10;
-        perMinuteRate = 2;
-        break;
+  const r = rates[vehicleType];
+  if (!r) throw new Error("Invalid vehicle type");
 
-      case "motorcycle":
-        baseFare = 20;
-        perKmRate = 8;
-        perMinuteRate = 1.5;
-        break;
-
-      case "car":
-        baseFare = 50;
-        perKmRate = 12;
-        perMinuteRate = 2.5;
-        break;
-
-      default:
-        throw new Error("Invalid vehicle type");
-    }
-
-    // OSRM distance is in meters
-    // OSRM duration is in seconds
-    const distanceInKm = distance / 1000;
-    const durationInMinutes = duration / 60;
-
-    const fare =
-      baseFare + distanceInKm * perKmRate + durationInMinutes * perMinuteRate;
-
-    return Math.round(fare);
-  } catch (error) {
-    console.error("Fare calculation error:", error);
-    throw error;
-  }
+  // OSRM: distance in meters, duration in seconds
+  const fare =
+    r.base + (distance / 1000) * r.perKm + (duration / 60) * r.perMin;
+  return Math.round(fare);
 };
 
-module.exports.getCaptainsInRadius = async (ltd, lng, radius) => {
+module.exports.createRide = async ({
+  user,
+  pickup,
+  destination,
+  vehicleType,
+}) => {
+  if (!user || !pickup || !destination || !vehicleType) {
+    throw new Error("All fields are required");
+  }
+
+  const pickupCoords = await getAddressCoordinates(pickup);
+  const destinationCoords = await getAddressCoordinates(destination);
+  const { distance, duration } = await getDistanceTime(
+    pickupCoords,
+    destinationCoords,
+  );
+
+  const fare = await module.exports.getFare(vehicleType, distance, duration);
+
+  // no try/catch here: let the controller's catch handle errors
+  return await rideModel.create({
+    user,
+    pickup,
+    destination,
+    vehicleType,
+    otp: getOtp(6),
+    fare,
+  });
+};
+
+// re-export so the controller's RideService.getAddressCoordinates works
+module.exports.getAddressCoordinates = getAddressCoordinates;
+
+// Haversine in JS: simple and avoids geo-index/field-order pitfalls
+module.exports.getCaptainsInRadius = async (lat, lng, radiusKm) => {
   const captains = await captainModel.find({
-    location: {
-      $geoWithin: {
-        $centerSphere: [[ltd, lng], radius / 6371],
-      },
-    },
+    socketId: { $exists: true, $ne: null },
   });
 
-  return captains;
+  const toRad = (d) => (d * Math.PI) / 180;
+  const distKm = (lat1, lng1, lat2, lng2) => {
+    const a =
+      Math.sin(toRad(lat2 - lat1) / 2) ** 2 +
+      Math.cos(toRad(lat1)) *
+        Math.cos(toRad(lat2)) *
+        Math.sin(toRad(lng2 - lng1) / 2) ** 2;
+    return 6371 * 2 * Math.asin(Math.sqrt(a));
+  };
+
+  return captains.filter(
+    (c) =>
+      c.location?.ltd != null &&
+      c.location?.lng != null &&
+      distKm(lat, lng, c.location.ltd, c.location.lng) <= radiusKm,
+  );
 };

@@ -7,7 +7,7 @@ import RidePopUp from "../components/RidePopUp";
 import ConfirmRidePopUp from "../components/ConfirmRidePopUp";
 import { useContext } from "react";
 import { SocketContext } from "../context/SocketContext";
-import CaptainContext from "../context/CaptainContext";
+import { CaptainDataContext } from "../context/CaptainContext";
 import { useEffect } from "react";
 
 const CaptainHome = () => {
@@ -17,37 +17,62 @@ const CaptainHome = () => {
   const ridePopupPanelRef = useRef(null);
   const confirmRidePopupPanelRef = useRef(null);
 
-  const {socket} = useContext(SocketContext)
-  const {captain}  = useContext(CaptainContext)
+  const { socket } = useContext(SocketContext);
+  const { captain } = useContext(CaptainDataContext);
 
   useEffect(() => {
-    socket.emit('join', {
-      userId: captain._id,
-      userType: 'captain'
-    })
+    if (!captain?._id || !socket) return;
+
+    const joinCaptain = () => {
+      socket.emit("join", {
+        userId: captain._id,
+        userType: "captain",
+      });
+    };
 
     const updateLocation = () => {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(position => {
-          socket.emit('update-captain-location', {
+      if (!navigator.geolocation) return;
+
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          socket.emit("update-captain-location", {
             userId: captain._id,
             location: {
               ltd: position.coords.latitude,
-              lng: position.coords.longitude
-            }
-          })
-        })
-      }
+              lng: position.coords.longitude,
+            },
+          });
+        },
+        (error) => {
+          console.error("Location error:", error.message);
+        },
+      );
+    };
+
+    // Join immediately if connected; otherwise wait for connection.
+    if (socket.connected) {
+      joinCaptain();
+    } else {
+      socket.on("connect", joinCaptain);
     }
 
-    const locationInterval = setInterval(updateLocation, 10000)
-updateLocation()
+    updateLocation();
 
-  }, [])
+    const locationInterval = setInterval(updateLocation, 10000);
 
-socket.on('new-ride', (data) => {
-  console.log(data)
-})
+    const handleNewRide = (data) => {
+      setRide(data);
+      setRidePopupPanel(true);
+    };
+
+    socket.on("new-ride", handleNewRide);
+
+    return () => {
+      clearInterval(locationInterval);
+      socket.off("connect", joinCaptain);
+      socket.off("new-ride", handleNewRide);
+    };
+  }, [captain?._id, socket]);
 
   useGSAP(
     function () {
