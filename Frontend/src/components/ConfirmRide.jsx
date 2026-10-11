@@ -51,7 +51,7 @@ const ConfirmRide = ({
           onClick={() => {
             setVehicleFound(true);
             setConfirmRidePanelOpen(false);
-            createRide;
+            createRide();
           }}
           className="w-full my-5 bg-green-600 text-white font-semibold p-2 rounded-lg"
         >

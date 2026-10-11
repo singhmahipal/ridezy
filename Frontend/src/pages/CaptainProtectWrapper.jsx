@@ -37,9 +37,11 @@ const CaptainProtectWrapper = ({ children }) => {
       } catch (err) {
         if (!cancelled) {
           console.error("Failed to fetch captain:", err);
-          localStorage.removeItem("token");
-          setCaptain(null);
-          navigate("/captain-login");
+          if (err.response?.status === 401 || err.response?.status === 403) {
+            localStorage.removeItem("token");
+            setCaptain(null);
+            navigate("/captain-login");
+          }
         }
       } finally {
         if (!cancelled) {

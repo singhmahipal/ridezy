@@ -1,8 +1,12 @@
 const express = require("express");
 const router = express.Router();
 const { body, query } = require("express-validator");
-const { createRide, getFare } = require("../controllers/ride.controller");
-const { authUser } = require("../middlewares/auth.middleware");
+const {
+  createRide,
+  getFare,
+  confirmRide,
+} = require("../controllers/ride.controller");
+const { authUser, authCaptain } = require("../middlewares/auth.middleware");
 
 router.post(
   "/create",
@@ -34,6 +38,13 @@ router.get(
     .withMessage("invalid destination location"),
   authUser,
   getFare,
+);
+
+router.post(
+  "/confirm",
+  authCaptain,
+  body("rideId").isMongoId().withMessage("invalid ride id"),
+  confirmRide,
 );
 
 module.exports = router;

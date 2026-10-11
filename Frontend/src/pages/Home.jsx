@@ -26,6 +26,7 @@ const Home = () => {
 
   const [fare, setFare] = useState({});
   const [vehicleType, setVehicleType] = useState("");
+  const [ride, setRide] = useState(null);
 
   const panelRef = useRef(null);
   const panelCloseRef = useRef(null);
@@ -43,8 +44,32 @@ const Home = () => {
   const { socket } = useContext(SocketContext);
 
   useEffect(() => {
-    socket.emit("join", { userType: "user", userId: user._id });
-  }, [user]);
+    if (!user?._id || !socket) return;
+
+    const joinUser = () => {
+      socket.emit("join", { userType: "user", userId: user._id });
+    };
+
+    if (socket.connected) {
+      joinUser();
+    } else {
+      socket.on("connect", joinUser);
+    }
+
+    return () => {
+      socket.off("connect", joinUser);
+    };
+  }, [user, socket]);
+
+  useEffect(() => {
+  const onConfirmed = (ride) => {
+    setVehicleFound(false);
+    setWaitingForDriver(true);
+    setRide(ride);
+  };
+  socket.on("ride-confirmed", onConfirmed);
+  return () => socket.off("ride-confirmed", onConfirmed);
+}, [socket]);
 
   const handlePickupChange = (e) => {
     setPickup(e.target.value);
@@ -364,6 +389,8 @@ const Home = () => {
             destination={destination}
             fare={fare}
             vehicleType={vehicleType}
+            setVehicleFound={setVehicleFound}
+            ride={ride}
             setWaitingForDriver={setWaitingForDriver}
           />
         </div>

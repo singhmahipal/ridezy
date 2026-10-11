@@ -5,6 +5,8 @@ const {
   getDistanceTime,
 } = require("../services/maps.service");
 const { sendMessageToSocketId } = require("../socket");
+const rideModel = require("../models/ride.model");
+const captainModel = require("../models/captain.model");
 
 module.exports.createRide = async (req, res) => {
   const errors = validationResult(req);
@@ -23,24 +25,33 @@ module.exports.createRide = async (req, res) => {
       vehicleType,
     });
 
-    res.status(201).json(ride);
-
     const pickupCoordinates = await RideService.getAddressCoordinates(pickup);
 
-    const captainInRadius = await RideService.getCaptainsInRadius(
+    let captainInRadius = await RideService.getCaptainsInRadius(
       pickupCoordinates.lat,
       pickupCoordinates.lng,
-      2,
+      200,
     );
 
-    ride.otp = "";
+    if (!captainInRadius || captainInRadius.length === 0) {
+      captainInRadius = await captainModel.find({
+        socketId: { $exists: true, $ne: null },
+      });
+    }
 
-    captainInRadius.map((captain) => {
+    const rideWithUser = await rideModel
+      .findOne({ _id: ride._id })
+      .select("-otp")
+      .populate("user");
+
+    captainInRadius.forEach((captain) => {
       sendMessageToSocketId(captain.socketId, {
         event: "new-ride",
-        data: ride,
+        data: rideWithUser,
       });
     });
+
+    return res.status(201).json(ride);
   } catch (error) {
     console.error("Create ride error:", error);
     return res.status(500).json({ message: error.message });
@@ -83,5 +94,32 @@ module.exports.getFare = async (req, res) => {
     return res.status(500).json({
       message: error.message,
     });
+  }
+};
+
+module.exports.confirmRide = async (req, res) => {
+  const errors = validationResult(req);
+
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
+  const { rideId } = req.body;
+
+  try {
+    const ride = await RideService.confirmRide({
+      rideId,
+      captain: req.captain,
+    });
+
+    sendMessageToSocketId(ride.user.socketId, {
+      event: "ride-confirmed",
+      data: ride,
+    });
+
+    return res.status(200).json(ride);
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: error.message });
   }
 };

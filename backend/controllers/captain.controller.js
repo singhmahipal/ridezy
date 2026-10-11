@@ -73,7 +73,9 @@ module.exports.logoutCaptain = async (req, res, next) => {
 
   res.clearCookie("token");
 
-  await blacklistTokenModel.create({ token });
+  if (token) {
+    await blacklistTokenModel.create({ token });
+  }
 
   res.status(200).json({ message: "captain logged out" });
 };

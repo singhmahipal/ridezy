@@ -5,33 +5,65 @@ import { UserDataContext } from "../context/UserContext";
 
 const UserProtectWrapper = ({ children }) => {
   const navigate = useNavigate();
-  const token = localStorage.getItem("token");
-  const { user, setUser } = useContext(UserDataContext);
+  const { setUser } = useContext(UserDataContext);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (!token) {
-      navigate("/login");
-    }
-  }, [token]);
+    let cancelled = false;
 
-  axios
-    .get(`${import.meta.env.VITE_BASE_URL}/users/profile`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-    .then((response) => {
-      if (response.status == 200) {
-        setUser(response.data);
+    const verifyUser = async () => {
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        navigate("/login", { replace: true });
+        return;
+      }
+
+      try {
+        const response = await axios.get(
+          `${import.meta.env.VITE_BASE_URL}/users/profile`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (!cancelled) {
+          setUser(response.data);
+          setIsLoading(false);
+        }
+      } catch (err) {
+        if (cancelled) return;
+
+        console.error(
+          "Profile verification failed:",
+          err.response?.status,
+          err.response?.data || err.message
+        );
+
+        // Remove the token only if the server says
+        // the authentication credentials are invalid.
+        if (
+          err.response?.status === 401 ||
+          err.response?.status === 403
+        ) {
+          localStorage.removeItem("token");
+          navigate("/login", { replace: true });
+          return;
+        }
+
+        // Keep the token if this is a network/server problem.
         setIsLoading(false);
       }
-    })
-    .catch((err) => {
-      console.log(err);
-      localStorage.removeItem("token");
-      navigate("/login");
-    });
+    };
+
+    verifyUser();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [navigate, setUser]);
 
   if (isLoading) {
     return (
