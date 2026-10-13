@@ -10,6 +10,7 @@ import WaitingForDriver from "../components/WaitingForDriver";
 import { useContext } from "react";
 import { UserDataContext } from "../context/UserContext";
 import { SocketContext } from "../context/SocketContext";
+import { useNavigate } from "react-router-dom";
 
 const Home = () => {
   const [pickup, setPickup] = useState("");
@@ -40,6 +41,8 @@ const Home = () => {
 
   const lookingForDriverRef = useRef(null);
 
+  const navigate = useNavigate();
+
   const { user } = useContext(UserDataContext);
   const { socket } = useContext(SocketContext);
 
@@ -62,14 +65,30 @@ const Home = () => {
   }, [user, socket]);
 
   useEffect(() => {
-  const onConfirmed = (ride) => {
-    setVehicleFound(false);
-    setWaitingForDriver(true);
-    setRide(ride);
-  };
-  socket.on("ride-confirmed", onConfirmed);
-  return () => socket.off("ride-confirmed", onConfirmed);
-}, [socket]);
+    const onConfirmed = (ride) => {
+      setVehicleFound(false);
+      setWaitingForDriver(true);
+      setRide(ride);
+    };
+    socket.on("ride-confirmed", onConfirmed);
+    return () => socket.off("ride-confirmed", onConfirmed);
+  }, [socket]);
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleRideStarted = async (ride) => {
+      console.log("ride started: ", ride);
+      setWaitingForDriver(false);
+      navigate("/riding");
+    };
+
+    socket.on("ride-started", handleRideStarted);
+
+    return () => {
+      socket.off("ride-started", handleRideStarted);
+    };
+  }, [socket, navigate]);
 
   const handlePickupChange = (e) => {
     setPickup(e.target.value);

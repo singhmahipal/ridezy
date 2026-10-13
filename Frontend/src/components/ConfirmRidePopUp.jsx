@@ -1,11 +1,32 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const ConfirmRidePopUp = (props) => {
   const [otp, setOtp] = useState("");
+  const navigate = useNavigate();
 
-  const submitHander = (e) => {
+  const submitHander = async (e) => {
     e.preventDefault();
+
+    const response = await axios.get(
+      `${import.meta.env.VITE_BASE_URL}/rides/start-ride`,
+      {
+        params: {
+          rideId: props.ride._id,
+          otp: otp,
+        },
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      },
+    );
+
+    if (response.status === 200) {
+      props.setConfirmRidePopupPanel(false);
+      props.setRidePopupPanel(false);
+      navigate("/captain-riding", { state: { ride: response.data } });
+    }
   };
   return (
     <div>
@@ -29,7 +50,9 @@ const ConfirmRidePopUp = (props) => {
             alt=""
           />
           <h2 className="text-lg font-medium capitalize">
-            {props.ride?.user ? `${props.ride.user.fullname?.firstname} ${props.ride.user.fullname?.lastname}` : "User"}
+            {props.ride?.user
+              ? `${props.ride.user.fullname?.firstname} ${props.ride.user.fullname?.lastname}`
+              : "User"}
           </h2>
         </div>
         <h5 className="text-lg font-semibold">2.2 KM</h5>
@@ -77,13 +100,12 @@ const ConfirmRidePopUp = (props) => {
               placeholder="Enter OTP"
             />
 
-            <Link
-              to="/captain-riding"
+            <button
               state={{ ride: props.ride }}
               className="w-full mt-5 text-lg flex justify-center bg-green-600 text-white font-semibold p-3 rounded-lg"
             >
               Confirm
-            </Link>
+            </button>
             <button
               type="button"
               onClick={() => {

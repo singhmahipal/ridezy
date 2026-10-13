@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 const Riding = () => {
   return (
     <div className='h-screen relative overflow-hidden'>
-        <Link className='fixed top-2 right-2 bg-white h-10 w-10 flex items-center justify-center rounded-full' to='/home'><i class="ri-home-4-line"></i></Link>
+        <Link className='fixed top-2 right-2 bg-white h-10 w-10 flex items-center justify-center rounded-full' to='/home'><i className="ri-home-4-line"></i></Link>
 
         <img src="https://upload.wikimedia.org/wikipedia/commons/c/cc/Uber_logo_2018.png" alt="ridezy logo" className="w-16 absolute top-5 left-5" />
 
