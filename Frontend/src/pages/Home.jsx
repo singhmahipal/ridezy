@@ -80,7 +80,7 @@ const Home = () => {
     const handleRideStarted = async (ride) => {
       console.log("ride started: ", ride);
       setWaitingForDriver(false);
-      navigate("/riding");
+      navigate("/riding", { state: { ride } });
     };
 
     socket.on("ride-started", handleRideStarted);

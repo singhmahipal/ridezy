@@ -6,6 +6,7 @@ const {
   getFare,
   confirmRide,
   startRide,
+  endRide,
 } = require("../controllers/ride.controller");
 const { authUser, authCaptain } = require("../middlewares/auth.middleware");
 
@@ -58,4 +59,12 @@ router.get(
     .withMessage("invalid otp"),
   startRide,
 );
+
+router.post(
+  "/end-ride",
+  authCaptain,
+  body("rideId").isMongoId().withMessage("invalid rideId"),
+  endRide,
+);
+
 module.exports = router;
