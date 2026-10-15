@@ -3,6 +3,7 @@ import { useContext } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { SocketContext } from "../context/SocketContext";
 import { useEffect } from "react";
+import LiveTracking from "../components/LiveTracking";
 SocketContext;
 useContext;
 const Riding = () => {
@@ -12,19 +13,19 @@ const Riding = () => {
   const { socket } = useContext(SocketContext);
 
   useEffect(() => {
-    if (!socket) return 
+    if (!socket) return;
 
     const handleRideEnded = () => {
-      console.log('ride ended event received')
-      navigate('/home')
-    }
+      console.log("ride ended event received");
+      navigate("/home");
+    };
 
-    socket.on('ride-ended', handleRideEnded)
+    socket.on("ride-ended", handleRideEnded);
 
-     return () => {
-      socket.off('ride-ended', handleRideEnded)
-    }
-  }, [socket, navigate])
+    return () => {
+      socket.off("ride-ended", handleRideEnded);
+    };
+  }, [socket, navigate]);
 
   return (
     <div className="h-screen relative overflow-hidden">
@@ -41,12 +42,8 @@ const Riding = () => {
         className="w-16 absolute top-5 left-5"
       />
 
-      <div className="h-screen w-screen">
-        <img
-          src="https://miro.medium.com/v2/resize:fit:1400/0*gwMx05pqII5hbfmX.gif"
-          alt="temp bg map"
-          className="h-full w-full object-cover"
-        />
+      <div className="fixed inset-5 z-0">
+        <LiveTracking />
       </div>
 
       <div className="absolute bottom-0 w-full">
@@ -54,7 +51,7 @@ const Riding = () => {
           <h5
             className="p-1 text-center w-[93%] absolute top-0"
             onClick={() => {
-              props.waitingForDriver(false);
+              waitingForDriver(false);
             }}
           >
             <i className="text-3xl text-gray-200 ri-arrow-down-wide-line"></i>

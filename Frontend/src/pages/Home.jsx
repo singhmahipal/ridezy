@@ -11,6 +11,7 @@ import { useContext } from "react";
 import { UserDataContext } from "../context/UserContext";
 import { SocketContext } from "../context/SocketContext";
 import { useNavigate } from "react-router-dom";
+import LiveTracking from "../components/LiveTracking";
 
 const Home = () => {
   const [pickup, setPickup] = useState("");
@@ -292,21 +293,17 @@ const Home = () => {
       <img
         src="https://upload.wikimedia.org/wikipedia/commons/c/cc/Uber_logo_2018.png"
         alt="uber logo"
-        className="w-16 absolute top-5 left-5"
+        className="w-16 absolute top-5 left-12"
       />
 
-      <div className="h-screen w-screen">
-        <img
-          src="https://miro.medium.com/v2/resize:fit:1400/0*gwMx05pqII5hbfmX.gif"
-          alt="temp bg map"
-          className="h-full w-full object-cover"
-        />
+      <div className="fixed inset-0 z-0">
+        <LiveTracking />
       </div>
 
       <div className="absolute bottom-0 left-0 w-full">
         <div className="flex flex-col p-6 justify-center bg-white relative overflow-hidden">
           <h5
-            className="absolute opacity-0 right-6 top-6 text-2xl"
+            className="absolute opacity-0 right-6 top-6 text-2xl z-20"
             onClick={() => setPanelOpen(false)}
             ref={panelCloseRef}
           >
